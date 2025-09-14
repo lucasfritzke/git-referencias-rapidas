@@ -144,6 +144,111 @@ Uma boa mensagem de commit deve ser clara, concisa e informativa. Seguir um padr
 - **test**: Adição ou correção de testes
 - **chore**: Alterações em processos de build, ferramentas, etc.
 
+### Usando Gitmoji
+
+Gitmoji é uma convenção que utiliza emojis no início das mensagens de commit para identificar visualmente o propósito do commit. Você pode combiná-los com o formato Conventional Commits descrito acima.
+
+#### Formato com Gitmoji
+
+```
+<emoji> <tipo>(<escopo>): <assunto>
+
+<corpo>
+
+<rodapé>
+```
+
+#### Emojis Comuns e Seus Significados
+
+| Emoji | Código | Significado | Equivalente Conventional Commits |
+|-------|--------|-------------|----------------------------------|
+| ✨    | `:sparkles:` | Nova funcionalidade | **feat** |
+| 🐛    | `:bug:` | Correção de bug | **fix** |
+| 📝    | `:memo:` | Documentação | **docs** |
+| 💄    | `:lipstick:` | UI/Estilo | **style** |
+| ♻️     | `:recycle:` | Refatoração | **refactor** |
+| ⚡️    | `:zap:` | Performance | **perf** |
+| ✅    | `:white_check_mark:` | Testes | **test** |
+| 🔧    | `:wrench:` | Configuração | **chore** |
+| 🚀    | `:rocket:` | Deploy | - |
+| 🔖    | `:bookmark:` | Release/Versão | - |
+| 🔒    | `:lock:` | Segurança | - |
+| ⬆️     | `:arrow_up:` | Atualização de dependências | - |
+| 🚧    | `:construction:` | Trabalho em progresso | - |
+| 💩    | `:poop:` | Código ruim que precisa ser melhorado | - |
+| 🔀    | `:twisted_rightwards_arrows:` | Merge de branches | - |
+
+#### Exemplos com Gitmoji
+
+```
+✨ feat(auth): implementa autenticação por dois fatores
+
+Adiciona suporte para autenticação via SMS e e-mail.
+Inclui testes de integração e documentação.
+
+Closes #123
+```
+
+```
+🐛 fix(api): corrige erro no endpoint de pagamento
+
+Resolve o problema de timeout que ocorria em transações acima de R$10.000
+
+Issue: #456
+```
+
+#### Como Usar na Prática
+
+1. No terminal, ao fazer commit:
+   ```
+   git commit -m "✨ feat(auth): implementa autenticação por dois fatores"
+   ```
+
+2. Ou usando editores como Vim:
+   ```
+   ✨ feat(auth): implementa autenticação por dois fatores
+
+   Adiciona suporte para autenticação via SMS e e-mail.
+   Inclui testes de integração e documentação.
+
+   Closes #123
+   ```
+
+3. Existem ferramentas como o [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli) que facilitam o uso:
+   ```
+   npm install -g gitmoji-cli
+   gitmoji -c  # Inicia commit interativo com seleção de emoji
+   ```
+
+#### Guia Rápido do Vim para Mensagens de Commit
+
+Quando você executa `git commit` sem a flag `-m`, o Git abre o editor padrão (frequentemente o Vim) para escrever a mensagem de commit. Aqui estão os comandos essenciais do Vim para esta tarefa:
+
+| Comando | Ação | Contexto de Uso |
+|---------|------|----------------|
+| `Esc` | Sai do modo de inserção | Use quando terminar de digitar ou precisar executar um comando |
+| `i` | Entra no modo de inserção | Use para começar a digitar texto |
+| `a` | Entra no modo de inserção após o cursor | Útil para continuar escrevendo após um caractere |
+| `o` | Insere uma nova linha abaixo e entra no modo de inserção | Ideal para adicionar o corpo da mensagem |
+| `dd` | Exclui a linha atual | Remover linhas não desejadas (comentários, etc.) |
+| `:wq` | Salva e sai | Quando terminar sua mensagem de commit |
+| `:q!` | Sai sem salvar | Para cancelar o commit |
+
+**Fluxo típico para mensagem de commit no Vim:**
+
+1. Git abre o Vim com um template da mensagem de commit
+2. Pressione `i` para entrar no modo de inserção
+3. Digite a linha de assunto (ex: `✨ feat(auth): implementa login`)
+4. Pressione `o` para criar uma linha em branco e continuar no modo de inserção
+5. Digite o corpo da mensagem
+6. Pressione `Esc` para sair do modo de inserção
+7. Digite `:wq` e pressione `Enter` para salvar e finalizar o commit
+
+**Dica:** Configure o Vim para destacar a sintaxe de mensagens de commit adicionando ao seu `~/.vimrc`:
+```
+autocmd FileType gitcommit setlocal spell textwidth=72
+```
+
 ### Exemplos
 ```
 feat(auth): implementa autenticação por dois fatores
@@ -187,6 +292,54 @@ Quando o mesmo arquivo é modificado em diferentes branches, pode ocorrer um con
 Use `git stash` para salvar alterações temporárias sem fazer commit.
 - **Exemplo:** `git stash` (salva alterações)
 - **Exemplo:** `git stash pop` (recupera alterações salvas)
+
+### Editar o Último Commit
+
+Existem várias razões para editar o último commit: corrigir a mensagem, adicionar arquivos esquecidos ou fazer pequenos ajustes no código. Aqui estão as maneiras de fazer isso:
+
+#### 1. Alterar Apenas a Mensagem do Último Commit
+
+```bash
+git commit --amend -m "Nova mensagem melhorada"
+```
+
+#### 2. Adicionar Alterações ao Último Commit
+
+```bash
+# Faça as alterações nos arquivos
+git add .                          # Adicione as alterações à área de preparação
+git commit --amend --no-edit       # Adiciona ao último commit mantendo a mesma mensagem
+```
+
+#### 3. Editar a Mensagem com o Editor (Vim)
+
+```bash
+git commit --amend                 # Abre o editor para modificar a mensagem
+```
+
+Quando o editor abrir:
+1. Pressione `i` para entrar no modo de inserção
+2. Edite a mensagem
+3. Pressione `Esc` e digite `:wq` para salvar e sair
+
+#### 4. Editar Commit Já Enviado ao Repositório Remoto
+
+Se você já enviou o commit para o repositório remoto, precisará usar força para substituí-lo:
+
+```bash
+git commit --amend                 # Faça as alterações necessárias
+git push --force-with-lease origin <branch>  # Envia as alterações com segurança
+```
+
+**IMPORTANTE:** Nunca use `--force` ou `--force-with-lease` em branches compartilhadas como `main` ou `develop`. Isso pode causar problemas para outros desenvolvedores.
+
+#### 5. Editar Commits Mais Antigos
+
+Para editar commits além do último, use o rebase interativo:
+
+```bash
+git rebase -i HEAD~n               # Onde n é o número de commits para trás que você quer editar
+```
 
 ## Operações Avançadas
 
