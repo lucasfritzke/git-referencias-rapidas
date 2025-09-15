@@ -405,6 +405,66 @@ Para editar commits além do último, use o rebase interativo:
 git rebase -i HEAD~n               # Onde n é o número de commits para trás que você quer editar
 ```
 
+### Resolver Erros Comuns durante Rebase e Merge
+
+#### Erro: "Your local changes would be overwritten by checkout"
+
+Este erro ocorre quando você tenta mudar de branch, fazer rebase ou merge com alterações não commitadas no working directory.
+
+```
+error: Your local changes to the following files would be overwritten by checkout:
+        README.md
+Please commit your changes or stash them before you switch branches.
+Aborting
+```
+
+**Soluções:**
+
+1. **Commit suas alterações primeiro:**
+   ```bash
+   git add .
+   git commit -m "Mensagem descritiva sobre suas alterações"
+   # Agora tente o rebase novamente
+   git rebase -i HEAD~2
+   ```
+
+2. **Use stash para guardar temporariamente as alterações:**
+   ```bash
+   git stash save "Descrição das alterações"
+   # Faça o rebase
+   git rebase -i HEAD~2
+   # Depois recupere as alterações
+   git stash pop
+   ```
+
+3. **Se quiser descartar as alterações locais:**
+   ```bash
+   git checkout -- README.md  # Descarta mudanças em um arquivo específico
+   # OU
+   git reset --hard           # Descarta todas as mudanças (use com cuidado!)
+   # Agora tente o rebase novamente
+   git rebase -i HEAD~2
+   ```
+
+#### Erro: "Merge conflict in [arquivo]"
+
+Este erro ocorre durante rebase ou merge quando o Git não consegue conciliar automaticamente as alterações:
+
+**Soluções:**
+
+1. **Resolva os conflitos manualmente:**
+   - Abra os arquivos com conflitos e procure por marcadores como `<<<<<<<`, `=======`, e `>>>>>>>`
+   - Edite os arquivos para resolver os conflitos
+   - Adicione os arquivos resolvidos: `git add .`
+   - Continue o rebase: `git rebase --continue`
+
+2. **Abortar a operação:**
+   ```bash
+   git rebase --abort  # Para cancelar o rebase
+   # OU
+   git merge --abort   # Para cancelar o merge
+   ```
+
 ### Navegar pelo Histórico e Trabalhar com Commits Antigos
 
 #### Visualizar o Histórico de Commits
@@ -491,22 +551,68 @@ O rebase interativo permite manipular commits de diversas formas, usando um edit
 Ao executar `git rebase -i HEAD~n` (onde n é o número de commits a serem editados), você verá uma lista de commits e poderá usar os seguintes comandos:
 
 ```
-# Comandos disponíveis:
-# p, pick = usar commit
-# r, reword = usar commit, mas editar a mensagem
-# e, edit = usar commit, mas parar para fazer alterações
-# s, squash = usar commit, mas mesclar com o commit anterior
-# f, fixup = como "squash", mas descarta a mensagem do commit
-# d, drop = remover commit
+# Comandos disponíveis no rebase interativo:
+# p, pick <commit> = usar commit sem alterações
+# r, reword <commit> = usar commit, mas editar a mensagem de commit
+# e, edit <commit> = usar commit, mas pausar para fazer alterações (amend)
+# s, squash <commit> = usar commit, mas combiná-lo com o commit anterior
+# f, fixup [-C | -c] <commit> = como "squash", mas descarta a mensagem deste commit
+#                    Se -C for usado, descarta a mensagem do commit anterior
+#                    Se -c for usado, abre o editor para editar a mensagem combinada
+# x, exec <comando> = executa um comando shell durante o rebase
+# b, break = pausa o rebase neste ponto (continue depois com 'git rebase --continue')
+# d, drop <commit> = remove completamente o commit
+# l, label <label> = define um rótulo para o HEAD atual
+# t, reset <label> = redefine o HEAD para um rótulo definido anteriormente
+# m, merge [-C <commit> | -c <commit>] <label> [# <oneline>] = cria um commit de merge
 ```
+
+**Detalhes dos comandos:**
+
+1. **pick**: O comando padrão. Mantém o commit como está.
+   - Exemplo: `pick abc123 Adiciona funcionalidade de login`
+
+2. **reword**: Permite alterar apenas a mensagem do commit.
+   - Exemplo: `reword abc123 Adiciona funcionalidade de login`
+   - O rebase pausará e abrirá um editor para você modificar a mensagem.
+
+3. **edit**: Permite fazer alterações no commit.
+   - Exemplo: `edit abc123 Adiciona funcionalidade de login`
+   - O rebase pausará após aplicar este commit, permitindo que você faça alterações com `git commit --amend`.
+   - Continue com `git rebase --continue` após terminar.
+
+4. **squash**: Combina o commit com o commit anterior, mantendo ambas as mensagens.
+   - Exemplo: `squash def456 Corrige bug na funcionalidade de login`
+   - O rebase abrirá um editor para você editar a mensagem combinada.
+
+5. **fixup**: Combina o commit com o anterior, mas descarta a mensagem deste commit.
+   - Exemplo: `fixup def456 Corrige bug na funcionalidade de login`
+   - Com `-C`: `fixup -C def456` mantém apenas a mensagem deste commit.
+   - Com `-c`: `fixup -c def456` abre o editor para editar, mas prioriza a mensagem deste commit.
+
+6. **exec**: Executa um comando shell.
+   - Exemplo: `exec npm test` (executa testes após cada commit processado)
+   - Útil para verificar se o código ainda funciona durante o rebase.
+
+7. **break**: Pausa o rebase para você fazer alterações manuais.
+   - Continue posteriormente com `git rebase --continue`.
+
+8. **drop**: Remove completamente um commit.
+   - Exemplo: `drop abc123 Commit desnecessário`
+
+9. **label**: Define um rótulo (referência) para o estado atual.
+   - Exemplo: `label base_stable`
+
+10. **reset**: Retorna ao estado marcado por um rótulo.
+    - Exemplo: `reset base_stable`
+
+11. **merge**: Cria um commit de merge durante o rebase.
+    - Exemplo: `merge feature_xyz Nova versão da funcionalidade XYZ`
 
 **Como usar:**
 1. Execute `git rebase -i HEAD~n`
 2. Seu editor de texto será aberto com a lista de commits
-3. Para cada linha, substitua `pick` pelo comando desejado:
-   - Para remover um commit, substitua `pick` por `d` ou `drop`
-   - Para combinar com o commit anterior, use `s` ou `squash`
-   - Para editar a mensagem, use `r` ou `reword`
+3. Para cada linha, substitua `pick` pelo comando desejado
 4. Salve e feche o arquivo para continuar o rebase
 5. Siga as instruções adicionais se necessário
 
@@ -527,6 +633,13 @@ pick abc123 Adiciona recurso de login
 d def456 Corrige erro de digitação
 pick ghi789 Adiciona testes para login
 ```
+
+**Dicas para rebase interativo:**
+- Ordem de processamento: do mais antigo (topo) para o mais recente (baixo)
+- Você pode reordenar as linhas para mudar a ordem dos commits
+- Se ocorrerem conflitos, resolva-os e use `git rebase --continue`
+- Para cancelar o rebase, use `git rebase --abort`
+- Nunca faça rebase de commits que já foram enviados para um repositório compartilhado
 
 ### Reflog
 Mantém um registro de todas as alterações na referência HEAD, mesmo após operações como reset, rebase, etc. É uma ferramenta de recuperação poderosa.
