@@ -2,6 +2,50 @@
 
 Este é um guia rápido com os termos e comandos mais comuns do Git.
 
+## Índice
+
+- [Termos Básicos](#termos-básicos)
+  - [Repository (Repositório)](#repository-repositório)
+  - [Clone](#clone)
+  - [Commit](#commit)
+  - [Parâmetros do Commit](#parâmetros-do-commit)
+  - [Branch (Ramo)](#branch-ramo)
+  - [Merge](#merge)
+  - [Pull](#pull)
+  - [Push](#push)
+- [Áreas do Git](#áreas-do-git)
+  - [Working Directory](#working-directory)
+  - [Staging Area (Área de Preparação)](#staging-area-área-de-preparação)
+  - [Repository](#repository)
+- [Comandos Úteis](#comandos-úteis)
+  - [git status](#git-status)
+  - [git log](#git-log)
+  - [git diff](#git-diff)
+  - [git reset](#git-reset)
+  - [git checkout](#git-checkout)
+  - [git branch](#git-branch)
+  - [git remote](#git-remote)
+- [Fluxo de Trabalho Básico](#fluxo-de-trabalho-básico)
+- [Boas Práticas para Mensagens de Commit](#boas-práticas-para-mensagens-de-commit)
+  - [Formato Recomendado](#formato-recomendado)
+  - [Tipos Comuns](#tipos-comuns)
+  - [Usando Gitmoji](#usando-gitmoji)
+  - [Exemplos](#exemplos)
+  - [Dicas](#dicas)
+- [Situações Comuns](#situações-comuns)
+  - [Ignorar Arquivos](#ignorar-arquivos)
+  - [Resolver Conflitos](#resolver-conflitos)
+  - [Salvar Alterações Temporárias](#salvar-alterações-temporárias)
+  - [Editar o Último Commit](#editar-o-último-commit)
+  - [Navegar pelo Histórico e Trabalhar com Commits Antigos](#navegar-pelo-histórico-e-trabalhar-com-commits-antigos)
+- [Operações Avançadas](#operações-avançadas)
+  - [Rebase](#rebase)
+  - [Squash](#squash)
+  - [Cherry-pick](#cherry-pick)
+  - [Rebase Interativo](#rebase-interativo)
+  - [Reflog](#reflog)
+  - [Bisect](#bisect)
+
 ## Termos Básicos
 
 ### Repository (Repositório)
@@ -95,8 +139,13 @@ Mostra o estado atual do repositório, incluindo arquivos modificados, adicionad
 
 ### git log
 Exibe o histórico de commits.
-- **Exemplo:** `git log`
-- **Exemplo:** `git log --oneline` (formato resumido)
+- **Exemplo:** `git log` (exibe o histórico completo)
+- **Exemplo:** `git log --oneline` (formato resumido, uma linha por commit)
+- **Exemplo:** `git log -n 5` (exibe apenas os 5 últimos commits)
+- **Exemplo:** `git log --author="nome"` (filtra por autor)
+- **Exemplo:** `git log --since="2023-01-01" --until="2023-12-31"` (filtra por período)
+- **Exemplo:** `git log --grep="feature"` (busca por palavra-chave nas mensagens)
+- **Exemplo:** `git log --graph --oneline --all` (visualização gráfica de todos os branches)
 
 ### git diff
 Mostra as diferenças entre arquivos, commits ou branches.
@@ -107,6 +156,21 @@ Mostra as diferenças entre arquivos, commits ou branches.
 Desfaz alterações ou remove arquivos da staging area.
 - **Exemplo:** `git reset HEAD arquivo.txt` (remove um arquivo da staging area)
 - **Exemplo:** `git reset --hard HEAD~1` (desfaz o último commit)
+
+### git checkout
+Navega entre branches ou commits específicos.
+- **Exemplo:** `git checkout feature-branch` (muda para outra branch)
+- **Exemplo:** `git checkout -b nova-branch` (cria e muda para uma nova branch)
+- **Exemplo:** `git checkout a1b2c3d` (navega para um commit específico, colocando o repositório em estado "detached HEAD")
+- **Exemplo:** `git checkout a1b2c3d -- arquivo.txt` (recupera um arquivo específico do commit a1b2c3d)
+
+### git branch
+Gerencia branches (ramos) no repositório.
+- **Exemplo:** `git branch` (lista todas as branches locais)
+- **Exemplo:** `git branch -a` (lista branches locais e remotas)
+- **Exemplo:** `git branch nova-branch` (cria uma nova branch)
+- **Exemplo:** `git branch -d feature-branch` (deleta uma branch)
+- **Exemplo:** `git branch nova-branch a1b2c3d` (cria uma nova branch a partir de um commit específico)
 
 ### git remote
 Gerencia conexões com repositórios remotos.
@@ -340,6 +404,67 @@ Para editar commits além do último, use o rebase interativo:
 ```bash
 git rebase -i HEAD~n               # Onde n é o número de commits para trás que você quer editar
 ```
+
+### Navegar pelo Histórico e Trabalhar com Commits Antigos
+
+#### Visualizar o Histórico de Commits
+
+Para ver o histórico de commits de forma eficiente:
+
+```bash
+git log --oneline --graph --all    # Mostra histórico resumido com representação gráfica
+git log -n 10                      # Mostra apenas os 10 commits mais recentes
+git log --author="Nome"            # Filtra commits por autor
+git log --since="1 week ago"       # Filtra commits da última semana
+```
+
+#### Voltar a um Commit Específico
+
+Existem diferentes formas de voltar a um commit anterior, dependendo do objetivo:
+
+1. **Para apenas examinar o código em um commit antigo (modo "detached HEAD"):**
+   ```bash
+   git checkout a1b2c3d            # Substitua a1b2c3d pelo hash do commit
+   ```
+   **Observação:** Neste modo, qualquer alteração que você fizer não estará associada a nenhuma branch.
+
+2. **Para desfazer commits, mantendo as alterações no working directory:**
+   ```bash
+   git reset a1b2c3d               # Mantém as alterações dos commits desfeitos como não-commitadas
+   ```
+
+3. **Para desfazer completamente commits (descartando alterações):**
+   ```bash
+   git reset --hard a1b2c3d        # Retorna ao estado exato do commit a1b2c3d
+   ```
+   **CUIDADO:** Esta operação descarta permanentemente todas as alterações feitas após o commit especificado.
+
+4. **Para reverter um commit, criando um novo commit que desfaz as alterações:**
+   ```bash
+   git revert a1b2c3d              # Cria um novo commit que desfaz as alterações do commit a1b2c3d
+   ```
+   Este é o método mais seguro para branches compartilhadas.
+
+#### Criar uma Nova Branch a Partir de um Commit Antigo
+
+Para experimentar alternativas ou corrigir bugs a partir de um ponto específico do histórico:
+
+```bash
+# Método 1: A partir do estado atual
+git checkout a1b2c3d               # Primeiro, vá para o commit desejado
+git checkout -b nova-feature       # Crie uma nova branch a partir deste commit
+
+# Método 2: Diretamente em um comando
+git checkout -b nova-feature a1b2c3d  # Cria a branch e faz checkout em um único comando
+
+# Método 3: Usando branch sem mudar para ela
+git branch nova-feature a1b2c3d    # Cria a branch mas mantém você na branch atual
+```
+
+**Uso Comum:** Esta técnica é útil para:
+- Criar uma branch de correção baseada em uma versão específica
+- Experimentar caminhos alternativos de desenvolvimento
+- Recuperar código que foi removido em commits posteriores
 
 ## Operações Avançadas
 
